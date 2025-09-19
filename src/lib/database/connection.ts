@@ -18,7 +18,8 @@ export function initializeDatabase(): Pool {
       max: config.database.maxConnections,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
-      ssl: isDevelopment ? false : { rejectUnauthorized: false },
+      ssl: config.database.url.includes('sslmode=disable') ? false :
+           isDevelopment ? false : { rejectUnauthorized: false },
     });
 
     // Handle pool errors

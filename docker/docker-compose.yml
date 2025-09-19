@@ -27,7 +27,7 @@ services:
       dockerfile: docker/Dockerfile
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://grocery_user:grocery_password@postgres:5432/grocery_app
+      DATABASE_URL: postgresql://grocery_user:grocery_password@postgres:5432/grocery_app?sslmode=disable
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       JWT_EXPIRES_IN: 24h
       REFRESH_TOKEN_EXPIRES_IN: 7d
