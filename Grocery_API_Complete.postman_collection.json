@@ -494,7 +494,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"name\": \"Updated {{randomItemName}}\",\n    \"quantity\": 20,\n    \"is_purchased\": true,\n    \"notes\": \"Updated via Postman at {{timestamp}}\"\n}"
+          "raw": "{\n    \"name\": \"Updated {{randomItemName}}\",\n    \"quantity\": 20,\n    \"isPurchased\": true,\n    \"notes\": \"Updated via Postman at {{timestamp}}\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/grocery-items/{{itemId}}",
@@ -706,7 +706,7 @@
               "        },",
               "        body: {",
               "            mode: 'raw',",
-              "            raw: JSON.stringify({ is_purchased: true })",
+              "            raw: JSON.stringify({ isPurchased: true })",
               "        }",
               "    }, (err2, res2) => {",
               "        pm.test('Complete flow: Item updated', () => {",

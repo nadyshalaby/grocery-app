@@ -127,7 +127,7 @@ GET /api/grocery-items
 # Optional query parameters:
 # ?store=Walmart
 # ?category=Dairy
-# ?is_purchased=false
+# ?isPurchased=false
 # ?search=milk
 ```
 
@@ -145,7 +145,7 @@ Content-Type: application/json
   "name": "Whole Milk",
   "quantity": 3,
   "store": "Target",
-  "is_purchased": true
+  "isPurchased": false
 }
 ```
 
@@ -297,6 +297,24 @@ pnpm docker:build   # Build images
 ```
 
 ## Testing
+
+### Automated Test Script
+
+Run the comprehensive test script that covers all endpoints, error cases, and edge cases:
+
+```bash
+./test-api.sh
+```
+
+The script tests:
+- ✅ Health checks
+- ✅ User registration and authentication
+- ✅ CRUD operations for grocery items
+- ✅ Filtering (by store, category, purchase status, search)
+- ✅ Input validation and error handling
+- ✅ Edge cases (255-char names, invalid quantities, etc.)
+- ✅ Authorization (missing/invalid tokens)
+- ✅ Performance (parallel request handling)
 
 ### Using Postman Collection
 
