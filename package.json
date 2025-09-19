@@ -11,6 +11,8 @@
     "docker:down": "docker-compose -f docker/docker-compose.yml down",
     "docker:logs": "docker-compose -f docker/docker-compose.yml logs -f",
     "docker:analysis": "docker-compose -f docker/docker-compose.yml --profile analysis up analysis",
+    "docker:restart": "docker-compose -f docker/docker-compose.yml down && docker-compose -f docker/docker-compose.yml up -d",
+    "docker:ps": "docker-compose -f docker/docker-compose.yml ps",
     "db:migrate": "node scripts/migrate.js"
   },
   "dependencies": {
