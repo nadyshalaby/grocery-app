@@ -27,6 +27,11 @@ docker-compose -f docker/docker-compose.yml up -d
 
 # The API will be available at http://localhost:3000
 # PostgreSQL at localhost:5432
+
+# Database credentials (configured in docker-compose.yml):
+# Database: grocery_app
+# User: grocery_user
+# Password: grocery_password
 ```
 
 ### Option 2: Local Development
@@ -81,11 +86,16 @@ Content-Type: application/json
 
 Response:
 {
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+  "message": "Login successful",
   "user": {
     "id": 1,
-    "email": "user@example.com"
+    "email": "user@example.com",
+    "createdAt": "2025-09-19T22:40:26.704Z",
+    "updatedAt": "2025-09-19T22:40:26.704Z"
+  },
+  "tokens": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+    "refreshToken": "eyJhbGciOiJIUzI5NiIs..."
   }
 }
 ```
@@ -245,7 +255,9 @@ Create a `.env.local` file with:
 
 ```bash
 # Database
-DATABASE_URL=postgresql://postgres:postgres123@localhost:5432/grocery_db
+# For Docker: connection is handled by docker-compose.yml
+# For local development:
+DATABASE_URL=postgresql://grocery_user:grocery_password@localhost:5432/grocery_app
 DB_MAX_CONNECTIONS=20
 
 # JWT Authentication

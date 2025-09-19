@@ -189,8 +189,8 @@
               "    });",
               "    ",
               "    const response = pm.response.json();",
-              "    pm.collectionVariables.set('authToken', response.token);",
-              "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+              "    pm.collectionVariables.set('authToken', response.tokens.accessToken);",
+              "    pm.collectionVariables.set('refreshToken', response.tokens.refreshToken);",
               "    pm.collectionVariables.set('userId', response.user.id);",
               "    console.log('✅ User registered, token saved');",
               "} else if (pm.response.code === 409) {",
@@ -237,16 +237,17 @@
               "});",
               "",
               "const response = pm.response.json();",
-              "pm.collectionVariables.set('authToken', response.token);",
-              "pm.collectionVariables.set('refreshToken', response.refreshToken);",
+              "pm.collectionVariables.set('authToken', response.tokens.accessToken);",
+              "pm.collectionVariables.set('refreshToken', response.tokens.refreshToken);",
               "pm.collectionVariables.set('userId', response.user.id);",
               "",
               "pm.test('Tokens received', () => {",
-              "    pm.expect(response).to.have.property('token');",
-              "    pm.expect(response).to.have.property('refreshToken');",
+              "    pm.expect(response).to.have.property('tokens');",
+              "    pm.expect(response.tokens).to.have.property('accessToken');",
+              "    pm.expect(response.tokens).to.have.property('refreshToken');",
               "});",
               "",
-              "console.log('✅ Login successful, token:', response.token.substring(0, 20) + '...');"
+              "console.log('✅ Login successful, token:', response.tokens.accessToken.substring(0, 20) + '...');"
             ]
           }
         }
@@ -669,7 +670,7 @@
               "});",
               "",
               "const response = pm.response.json();",
-              "const flowToken = response.token;",
+              "const flowToken = response.tokens.accessToken;",
               "",
               "// Step 1: Create an item",
               "pm.sendRequest({",
