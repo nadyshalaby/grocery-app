@@ -119,6 +119,10 @@ export class GroceryItemServiceImpl implements GroceryItemService {
       throw new ValidationError('Quantity must be at least 1');
     }
 
+    if (data.store && data.store.length > 255) {
+      throw new ValidationError('Store name must be 255 characters or less');
+    }
+
     if (data.category && data.category.length > 100) {
       throw new ValidationError('Category must be 100 characters or less');
     }
@@ -149,6 +153,10 @@ export class GroceryItemServiceImpl implements GroceryItemService {
       throw new ValidationError('Quantity must be at least 1');
     }
 
+    if (data.store !== undefined && data.store.length > 255) {
+      throw new ValidationError('Store name must be 255 characters or less');
+    }
+
     if (data.category !== undefined && data.category.length > 100) {
       throw new ValidationError('Category must be 100 characters or less');
     }
@@ -162,6 +170,10 @@ export class GroceryItemServiceImpl implements GroceryItemService {
    * Validate filters
    */
   private validateFilters(filters: GroceryItemFilters): void {
+    if (filters.store && filters.store.length > 255) {
+      throw new ValidationError('Store filter must be 255 characters or less');
+    }
+
     if (filters.category && filters.category.length > 100) {
       throw new ValidationError('Category filter must be 100 characters or less');
     }

@@ -62,7 +62,13 @@ class GroceryAnalyzer:
         """
 
         with self.connect() as conn:
-            df = pd.read_sql_query(query, conn, params=(limit,))
+            cursor = conn.cursor()
+            cursor.execute(query, (limit,))
+            rows = cursor.fetchall()
+            if rows:
+                df = pd.DataFrame(rows)
+            else:
+                df = pd.DataFrame()
 
         return df
 
@@ -81,7 +87,13 @@ class GroceryAnalyzer:
         """
 
         with self.connect() as conn:
-            df = pd.read_sql_query(query, conn)
+            cursor = conn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            if rows:
+                df = pd.DataFrame(rows)
+            else:
+                df = pd.DataFrame()
 
         return df
 
@@ -102,7 +114,13 @@ class GroceryAnalyzer:
         """
 
         with self.connect() as conn:
-            df = pd.read_sql_query(query, conn)
+            cursor = conn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            if rows:
+                df = pd.DataFrame(rows)
+            else:
+                df = pd.DataFrame()
 
         return df
 
@@ -276,18 +294,23 @@ class GroceryAnalyzer:
         top_items = self.get_top_items(5)
 
         for idx, row in top_items.iterrows():
-            print(f"{idx+1}. {row['item_name']:<20} - Count: {row['frequency']:>3} | "
-                  f"Users: {row['unique_users']:>2} | Avg Qty: {row['avg_quantity']:.1f}")
+            freq = int(row['frequency'])
+            users = int(row['unique_users'])
+            avg_qty = float(row['avg_quantity']) if row['avg_quantity'] else 0
+            print(f"{idx+1}. {row['item_name']:<20} - Count: {freq:>3} | "
+                  f"Users: {users:>2} | Avg Qty: {avg_qty:.1f}")
 
         # Store distribution
         print("\n🏪 STORE DISTRIBUTION:")
         print("-"*60)
         stores = self.get_store_distribution()
-
         if not stores.empty:
             for idx, row in stores.head(3).iterrows():
-                print(f"  {row['store']:<20} - Items: {row['item_count']:>3} | "
-                      f"Unique: {row['unique_items']:>3} | Customers: {row['customers']:>2}")
+                item_count = int(row['item_count'])
+                unique_items = int(row['unique_items'])
+                customers = int(row['customers'])
+                print(f"  {row['store']:<20} - Items: {item_count:>3} | "
+                      f"Unique: {unique_items:>3} | Customers: {customers:>2}")
         else:
             print("  No store data available")
 
@@ -298,8 +321,10 @@ class GroceryAnalyzer:
 
         if not users.empty:
             for idx, row in users.head(3).iterrows():
-                print(f"  {row['email']:<30} - Items: {row['total_items']:>3} | "
-                      f"Unique: {row['unique_items']:>3}")
+                total_items = int(row['total_items']) if row['total_items'] else 0
+                unique_items = int(row['unique_items']) if row['unique_items'] else 0
+                print(f"  {row['email']:<30} - Items: {total_items:>3} | "
+                      f"Unique: {unique_items:>3}")
         else:
             print("  No user data available")
 

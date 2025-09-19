@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS grocery_items (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     quantity INTEGER DEFAULT 1 CHECK (quantity > 0),
+    store VARCHAR(255),
     category VARCHAR(100),
     notes TEXT,
     is_purchased BOOLEAN DEFAULT FALSE,

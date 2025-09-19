@@ -24,13 +24,13 @@ export class PostgresGroceryItemRepository implements GroceryItemRepository {
    * Create a new grocery item
    */
   async create(userId: number, itemData: CreateGroceryItemRequest): Promise<GroceryItem> {
-    const { name, quantity = 1, category, notes } = itemData;
+    const { name, quantity = 1, store, category, notes } = itemData;
 
     const result = await query<GroceryItem>(
-      `INSERT INTO grocery_items (user_id, name, quantity, category, notes)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, user_id, name, quantity, category, notes, is_purchased, created_at, updated_at`,
-      [userId, name, quantity, category || null, notes || null]
+      `INSERT INTO grocery_items (user_id, name, quantity, store, category, notes)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, user_id, name, quantity, store, category, notes, is_purchased, created_at, updated_at`,
+      [userId, name, quantity, store || null, category || null, notes || null]
     );
 
     if (result.rowCount === 0) {
@@ -45,7 +45,7 @@ export class PostgresGroceryItemRepository implements GroceryItemRepository {
    */
   async findById(id: number, userId: number): Promise<GroceryItem | null> {
     const result = await query<any>(
-      `SELECT id, user_id, name, quantity, category, notes, is_purchased, created_at, updated_at
+      `SELECT id, user_id, name, quantity, store, category, notes, is_purchased, created_at, updated_at
        FROM grocery_items
        WHERE id = $1 AND user_id = $2`,
       [id, userId]
@@ -63,7 +63,7 @@ export class PostgresGroceryItemRepository implements GroceryItemRepository {
    */
   async findByUserId(userId: number, filters?: GroceryItemFilters): Promise<GroceryItem[]> {
     let queryText = `
-      SELECT id, user_id, name, quantity, category, notes, is_purchased, created_at, updated_at
+      SELECT id, user_id, name, quantity, store, category, notes, is_purchased, created_at, updated_at
       FROM grocery_items
       WHERE user_id = $1
     `;
@@ -71,6 +71,12 @@ export class PostgresGroceryItemRepository implements GroceryItemRepository {
     let paramIndex = 2;
 
     // Apply filters
+    if (filters?.store) {
+      queryText += ` AND store = $${paramIndex}`;
+      params.push(filters.store);
+      paramIndex++;
+    }
+
     if (filters?.category) {
       queryText += ` AND category = $${paramIndex}`;
       params.push(filters.category);
@@ -116,6 +122,12 @@ export class PostgresGroceryItemRepository implements GroceryItemRepository {
       paramIndex++;
     }
 
+    if (updateData.store !== undefined) {
+      updateFields.push(`store = $${paramIndex}`);
+      params.push(updateData.store);
+      paramIndex++;
+    }
+
     if (updateData.category !== undefined) {
       updateFields.push(`category = $${paramIndex}`);
       params.push(updateData.category);
@@ -146,7 +158,7 @@ export class PostgresGroceryItemRepository implements GroceryItemRepository {
       UPDATE grocery_items
       SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP
       ${whereClause}
-      RETURNING id, user_id, name, quantity, category, notes, is_purchased, created_at, updated_at
+      RETURNING id, user_id, name, quantity, store, category, notes, is_purchased, created_at, updated_at
     `;
 
     const result = await query<any>(queryText, params);
@@ -180,6 +192,7 @@ export class PostgresGroceryItemRepository implements GroceryItemRepository {
       userId: row.user_id,
       name: row.name,
       quantity: row.quantity,
+      store: row.store,
       category: row.category,
       notes: row.notes,
       isPurchased: row.is_purchased,

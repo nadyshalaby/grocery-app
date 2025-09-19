@@ -125,9 +125,10 @@ Content-Type: application/json
 ```bash
 GET /api/grocery-items
 # Optional query parameters:
-# ?category=Dairy
 # ?store=Walmart
+# ?category=Dairy
 # ?is_purchased=false
+# ?search=milk
 ```
 
 #### Get Single Item
@@ -143,6 +144,7 @@ Content-Type: application/json
 {
   "name": "Whole Milk",
   "quantity": 3,
+  "store": "Target",
   "is_purchased": true
 }
 ```

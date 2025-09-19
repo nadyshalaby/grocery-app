@@ -18,6 +18,10 @@ export const GET = withAuth(async (request: NextRequest, _context: { params: Pro
     const { searchParams } = new URL(request.url);
     const filters: GroceryItemFilters = {};
 
+    if (searchParams.get('store')) {
+      filters.store = searchParams.get('store')!;
+    }
+
     if (searchParams.get('category')) {
       filters.category = searchParams.get('category')!;
     }

@@ -95,7 +95,8 @@ if [ ! -z "$ITEM_ID" ]; then
       -d '{
         "name": "Whole Milk",
         "quantity": 3,
-        "is_purchased": true
+        "store": "Target",
+        "is_purchased": false
       }' | jq '.'
 
     # Test Delete Item
@@ -108,6 +109,14 @@ fi
 echo -e "\n${GREEN}10. Testing Item Filtering${NC}"
 echo "By category:"
 curl -s "$API_URL/grocery-items?category=Produce" \
+  -H "Authorization: Bearer $TOKEN" | jq '.'
+
+echo -e "\nBy store:"
+curl -s "$API_URL/grocery-items?store=Walmart" \
+  -H "Authorization: Bearer $TOKEN" | jq '.'
+
+echo -e "\nBy purchase status:"
+curl -s "$API_URL/grocery-items?is_purchased=false" \
   -H "Authorization: Bearer $TOKEN" | jq '.'
 
 echo -e "\n${GREEN}✅ All tests completed!${NC}"

@@ -19,6 +19,7 @@ export const loginSchema = z.object({
 export const createGroceryItemSchema = z.object({
   name: z.string().min(1, 'Item name is required').max(255, 'Item name must be 255 characters or less'),
   quantity: z.number().int().min(1, 'Quantity must be at least 1').optional().default(1),
+  store: z.string().max(255, 'Store name must be 255 characters or less').optional(),
   category: z.string().max(100, 'Category must be 100 characters or less').optional(),
   notes: z.string().max(1000, 'Notes must be 1000 characters or less').optional(),
 });
@@ -26,6 +27,7 @@ export const createGroceryItemSchema = z.object({
 export const updateGroceryItemSchema = z.object({
   name: z.string().min(1, 'Item name cannot be empty').max(255, 'Item name must be 255 characters or less').optional(),
   quantity: z.number().int().min(1, 'Quantity must be at least 1').optional(),
+  store: z.string().max(255, 'Store name must be 255 characters or less').optional(),
   category: z.string().max(100, 'Category must be 100 characters or less').optional(),
   notes: z.string().max(1000, 'Notes must be 1000 characters or less').optional(),
   isPurchased: z.boolean().optional(),
@@ -34,6 +36,7 @@ export const updateGroceryItemSchema = z.object({
 });
 
 export const groceryItemFiltersSchema = z.object({
+  store: z.string().max(255, 'Store filter must be 255 characters or less').optional(),
   category: z.string().max(100, 'Category filter must be 100 characters or less').optional(),
   isPurchased: z.boolean().optional(),
   search: z.string().max(255, 'Search term must be 255 characters or less').optional(),

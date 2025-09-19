@@ -7,6 +7,7 @@ export interface GroceryItem {
   userId: number;
   name: string;
   quantity: number;
+  store?: string;
   category?: string;
   notes?: string;
   isPurchased: boolean;
@@ -17,6 +18,7 @@ export interface GroceryItem {
 export interface CreateGroceryItemRequest {
   name: string;
   quantity?: number;
+  store?: string;
   category?: string;
   notes?: string;
 }
@@ -24,12 +26,14 @@ export interface CreateGroceryItemRequest {
 export interface UpdateGroceryItemRequest {
   name?: string;
   quantity?: number;
+  store?: string;
   category?: string;
   notes?: string;
   isPurchased?: boolean;
 }
 
 export interface GroceryItemFilters {
+  store?: string;
   category?: string;
   isPurchased?: boolean;
   search?: string;
