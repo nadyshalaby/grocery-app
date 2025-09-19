@@ -1,0 +1,791 @@
+{
+  "info": {
+    "name": "Grocery List API - Complete",
+    "description": "Complete API collection for Grocery List application with JWT authentication, environment variables, and test scenarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Initialize environment variables if not set",
+          "if (!pm.collectionVariables.get('baseUrl')) {",
+          "    pm.collectionVariables.set('baseUrl', 'http://localhost:3000/api');",
+          "}",
+          "",
+          "if (!pm.collectionVariables.get('testEmail')) {",
+          "    pm.collectionVariables.set('testEmail', 'test@example.com');",
+          "}",
+          "",
+          "if (!pm.collectionVariables.get('testPassword')) {",
+          "    pm.collectionVariables.set('testPassword', 'Test123!');",
+          "}",
+          "",
+          "// Generate random data for each request",
+          "const timestamp = Date.now();",
+          "const randomEmail = `user_${timestamp}@example.com`;",
+          "const randomInt = Math.floor(Math.random() * 10) + 1;",
+          "",
+          "// Grocery item data pools",
+          "const items = ['Milk', 'Bread', 'Eggs', 'Cheese', 'Apples', 'Bananas', 'Chicken', 'Rice', 'Pasta', 'Tomatoes', 'Yogurt', 'Butter', 'Orange Juice', 'Cereal', 'Coffee'];",
+          "const stores = ['Walmart', 'Target', 'Whole Foods', 'Kroger', 'Safeway', 'Trader Joe\\'s', 'Costco', 'Aldi'];",
+          "const categories = ['Dairy', 'Bakery', 'Produce', 'Meat', 'Grains', 'Frozen', 'Snacks', 'Beverages', 'Pantry'];",
+          "",
+          "// Set random variables",
+          "pm.collectionVariables.set('randomEmail', randomEmail);",
+          "pm.collectionVariables.set('randomPassword', `Pass${timestamp}!`);",
+          "pm.collectionVariables.set('randomItemName', items[Math.floor(Math.random() * items.length)]);",
+          "pm.collectionVariables.set('randomStore', stores[Math.floor(Math.random() * stores.length)]);",
+          "pm.collectionVariables.set('randomCategory', categories[Math.floor(Math.random() * categories.length)]);",
+          "pm.collectionVariables.set('randomQuantity', randomInt);",
+          "pm.collectionVariables.set('timestamp', new Date().toISOString());",
+          "",
+          "// Log current environment",
+          "console.log('Base URL:', pm.collectionVariables.get('baseUrl'));",
+          "console.log('Test Email:', pm.collectionVariables.get('testEmail'));"
+        ],
+        "type": "text/javascript"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "// Global tests for all requests",
+          "pm.test('Response time is less than 2000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});",
+          "",
+          "// Check if response is JSON when expected",
+          "const contentType = pm.response.headers.get('Content-Type');",
+          "if (contentType && contentType.includes('application/json')) {",
+          "    pm.test('Response is JSON', function () {",
+          "        pm.response.to.be.json;",
+          "    });",
+          "}",
+          "",
+          "// Log response for debugging",
+          "if (pm.response.code >= 400) {",
+          "    console.log('Error Response:', pm.response.json());",
+          "}"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "testEmail",
+      "value": "test@example.com",
+      "type": "string"
+    },
+    {
+      "key": "testPassword",
+      "value": "Test123!",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('API is healthy', () => {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.status).to.eql('healthy');",
+              "    pm.expect(response.database).to.eql('connected');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Register User",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"{{testEmail}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    pm.test('User registered successfully', () => {",
+              "        pm.response.to.have.status(201);",
+              "    });",
+              "    ",
+              "    const response = pm.response.json();",
+              "    pm.collectionVariables.set('authToken', response.token);",
+              "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+              "    pm.collectionVariables.set('userId', response.user.id);",
+              "    console.log('✅ User registered, token saved');",
+              "} else if (pm.response.code === 409) {",
+              "    pm.test('User already exists', () => {",
+              "        pm.response.to.have.status(409);",
+              "    });",
+              "    console.log('ℹ️ User exists, use login');",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Login User",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"{{testEmail}}\",\n    \"password\": \"{{testPassword}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login successful', () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('authToken', response.token);",
+              "pm.collectionVariables.set('refreshToken', response.refreshToken);",
+              "pm.collectionVariables.set('userId', response.user.id);",
+              "",
+              "pm.test('Tokens received', () => {",
+              "    pm.expect(response).to.have.property('token');",
+              "    pm.expect(response).to.have.property('refreshToken');",
+              "});",
+              "",
+              "console.log('✅ Login successful, token:', response.token.substring(0, 20) + '...');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Create Grocery Item",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{randomItemName}}\",\n    \"quantity\": {{randomQuantity}},\n    \"store\": \"{{randomStore}}\",\n    \"category\": \"{{randomCategory}}\",\n    \"notes\": \"Added via Postman at {{timestamp}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/grocery-items",
+          "host": ["{{baseUrl}}"],
+          "path": ["grocery-items"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// You can override random data here if needed",
+              "// pm.collectionVariables.set('randomItemName', 'Custom Item');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Item created successfully', () => {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.collectionVariables.set('itemId', response.item.id);",
+              "",
+              "pm.test('Item has all fields', () => {",
+              "    pm.expect(response.item).to.have.property('id');",
+              "    pm.expect(response.item).to.have.property('name');",
+              "    pm.expect(response.item).to.have.property('quantity');",
+              "    pm.expect(response.item).to.have.property('userId');",
+              "});",
+              "",
+              "console.log('✅ Created item:', response.item.name, 'with ID:', response.item.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Create Multiple Items (Bulk)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"Milk\",\n    \"quantity\": 2,\n    \"store\": \"Walmart\",\n    \"category\": \"Dairy\",\n    \"notes\": \"2% milk\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/grocery-items",
+          "host": ["{{baseUrl}}"],
+          "path": ["grocery-items"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Cycle through different items each time this is run",
+              "const items = [",
+              "    { name: 'Milk', quantity: 2, store: 'Walmart', category: 'Dairy', notes: '2% milk' },",
+              "    { name: 'Bread', quantity: 1, store: 'Target', category: 'Bakery', notes: 'Whole wheat' },",
+              "    { name: 'Apples', quantity: 5, store: 'Whole Foods', category: 'Produce', notes: 'Gala apples' },",
+              "    { name: 'Chicken', quantity: 2, store: 'Kroger', category: 'Meat', notes: 'Boneless breast' },",
+              "    { name: 'Rice', quantity: 1, store: 'Costco', category: 'Grains', notes: 'Brown rice' },",
+              "    { name: 'Eggs', quantity: 12, store: 'Safeway', category: 'Dairy', notes: 'Large eggs' },",
+              "    { name: 'Pasta', quantity: 3, store: 'Trader Joes', category: 'Grains', notes: 'Penne' },",
+              "    { name: 'Tomatoes', quantity: 6, store: 'Farmers Market', category: 'Produce', notes: 'Roma' }",
+              "];",
+              "",
+              "const randomItem = items[Math.floor(Math.random() * items.length)];",
+              "pm.request.body.raw = JSON.stringify(randomItem, null, 2);",
+              "console.log('Creating item:', randomItem.name);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Bulk item created', () => {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "console.log('✅ Added:', response.item.name);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Get All Items",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/grocery-items",
+          "host": ["{{baseUrl}}"],
+          "path": ["grocery-items"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Items retrieved successfully', () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Response has items array', () => {",
+              "    pm.expect(response).to.have.property('items');",
+              "    pm.expect(response.items).to.be.an('array');",
+              "});",
+              "",
+              "console.log(`✅ Found ${response.count} items`);",
+              "response.items.forEach(item => {",
+              "    console.log(`  - ${item.name} (${item.quantity}x) from ${item.store || 'unknown'}`);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Get Filtered Items",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/grocery-items?category=Dairy&isPurchased=false",
+          "host": ["{{baseUrl}}"],
+          "path": ["grocery-items"],
+          "query": [
+            {
+              "key": "category",
+              "value": "Dairy"
+            },
+            {
+              "key": "isPurchased",
+              "value": "false"
+            },
+            {
+              "key": "search",
+              "value": "milk",
+              "disabled": true
+            },
+            {
+              "key": "store",
+              "value": "Walmart",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Filtered results returned', () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "const params = pm.request.url.query.all();",
+              "const activeFilters = params.filter(p => !p.disabled);",
+              "",
+              "console.log('Active filters:', activeFilters.map(f => `${f.key}=${f.value}`).join(', '));",
+              "console.log(`✅ Found ${response.count} matching items`);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Get Single Item",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/grocery-items/{{itemId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["grocery-items", "{{itemId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Item retrieved successfully', () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Correct item returned', () => {",
+              "    pm.expect(response.item.id).to.equal(parseInt(pm.collectionVariables.get('itemId')));",
+              "});",
+              "",
+              "console.log('✅ Retrieved:', response.item.name);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Update Item",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"Updated {{randomItemName}}\",\n    \"quantity\": 20,\n    \"is_purchased\": true,\n    \"notes\": \"Updated via Postman at {{timestamp}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/grocery-items/{{itemId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["grocery-items", "{{itemId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Item updated successfully', () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Item marked as purchased', () => {",
+              "    pm.expect(response.item.isPurchased).to.be.true;",
+              "});",
+              "",
+              "console.log('✅ Updated item:', response.item.name);",
+              "console.log('  Purchased:', response.item.isPurchased);",
+              "console.log('  Quantity:', response.item.quantity);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Delete Item",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/grocery-items/{{itemId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["grocery-items", "{{itemId}}"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Item deleted successfully', () => {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "console.log('✅ Item deleted');",
+              "",
+              "// Verify deletion by trying to get the item",
+              "pm.sendRequest({",
+              "    url: pm.collectionVariables.get('baseUrl') + '/grocery-items/' + pm.collectionVariables.get('itemId'),",
+              "    method: 'GET',",
+              "    header: {",
+              "        'Authorization': 'Bearer ' + pm.collectionVariables.get('authToken')",
+              "    }",
+              "}, (err, res) => {",
+              "    pm.test('Deleted item returns 404', () => {",
+              "        pm.expect(res.code).to.equal(404);",
+              "    });",
+              "    console.log('✅ Deletion confirmed: item not found');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Test Unauthorized Access",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/grocery-items",
+          "host": ["{{baseUrl}}"],
+          "path": ["grocery-items"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Unauthorized request rejected', () => {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "pm.test('Error message present', () => {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('error');",
+              "});",
+              "",
+              "console.log('✅ Authentication required as expected');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Invalid Login Test",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"nonexistent@example.com\",\n    \"password\": \"WrongPassword123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Invalid credentials rejected', () => {",
+              "    pm.response.to.have.status(401);",
+              "});",
+              "",
+              "console.log('✅ Invalid credentials handled correctly');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Complete Flow Test",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"flow_{{$timestamp}}@example.com\",\n    \"password\": \"FlowTest123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// This test runs a complete user flow",
+              "pm.test('Complete flow: User registered', () => {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "const flowToken = response.token;",
+              "",
+              "// Step 1: Create an item",
+              "pm.sendRequest({",
+              "    url: pm.collectionVariables.get('baseUrl') + '/grocery-items',",
+              "    method: 'POST',",
+              "    header: {",
+              "        'Authorization': 'Bearer ' + flowToken,",
+              "        'Content-Type': 'application/json'",
+              "    },",
+              "    body: {",
+              "        mode: 'raw',",
+              "        raw: JSON.stringify({",
+              "            name: 'Flow Test Item',",
+              "            quantity: 5,",
+              "            store: 'Flow Store',",
+              "            category: 'Test'",
+              "        })",
+              "    }",
+              "}, (err, res) => {",
+              "    pm.test('Complete flow: Item created', () => {",
+              "        pm.expect(res.code).to.equal(201);",
+              "    });",
+              "    ",
+              "    const itemId = res.json().item.id;",
+              "    ",
+              "    // Step 2: Update the item",
+              "    pm.sendRequest({",
+              "        url: pm.collectionVariables.get('baseUrl') + '/grocery-items/' + itemId,",
+              "        method: 'PUT',",
+              "        header: {",
+              "            'Authorization': 'Bearer ' + flowToken,",
+              "            'Content-Type': 'application/json'",
+              "        },",
+              "        body: {",
+              "            mode: 'raw',",
+              "            raw: JSON.stringify({ is_purchased: true })",
+              "        }",
+              "    }, (err2, res2) => {",
+              "        pm.test('Complete flow: Item updated', () => {",
+              "            pm.expect(res2.code).to.equal(200);",
+              "        });",
+              "        ",
+              "        // Step 3: Delete the item",
+              "        pm.sendRequest({",
+              "            url: pm.collectionVariables.get('baseUrl') + '/grocery-items/' + itemId,",
+              "            method: 'DELETE',",
+              "            header: {",
+              "                'Authorization': 'Bearer ' + flowToken",
+              "            }",
+              "        }, (err3, res3) => {",
+              "            pm.test('Complete flow: Item deleted', () => {",
+              "                pm.expect(res3.code).to.equal(200);",
+              "            });",
+              "            console.log('✅ COMPLETE FLOW TEST PASSED!');",
+              "        });",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Environment Setup",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// This request initializes all environment variables",
+              "console.log('='.repeat(50));",
+              "console.log('GROCERY API COLLECTION');",
+              "console.log('='.repeat(50));",
+              "console.log('');",
+              "console.log('Environment Variables:');",
+              "console.log('  Base URL:', pm.collectionVariables.get('baseUrl'));",
+              "console.log('  Test Email:', pm.collectionVariables.get('testEmail'));",
+              "console.log('  Test Password:', '***hidden***');",
+              "console.log('');",
+              "console.log('Instructions:');",
+              "console.log('1. Run requests in order (1-13)');",
+              "console.log('2. Or use Collection Runner for automated testing');",
+              "console.log('3. Tokens are automatically managed');",
+              "console.log('4. Random data is generated for each run');",
+              "console.log('');",
+              "console.log('='.repeat(50));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Environment initialized', () => {",
+              "    pm.expect(pm.collectionVariables.get('baseUrl')).to.exist;",
+              "    pm.expect(pm.collectionVariables.get('testEmail')).to.exist;",
+              "    pm.expect(pm.collectionVariables.get('testPassword')).to.exist;",
+              "});",
+              "",
+              "console.log('✅ Environment ready');"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

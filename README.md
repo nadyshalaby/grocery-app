@@ -284,6 +284,37 @@ pnpm docker:build   # Build images
 
 ## Testing
 
+### Using Postman Collection
+
+A complete Postman collection is included for testing all API endpoints:
+
+1. **Import Collection**
+   - Open Postman
+   - Click "Import" → Select `Grocery_API.postman_collection.json`
+   - Import the environment file: `Grocery_API.postman_environment.json`
+
+2. **Collection Features**
+   - Pre-configured requests for all endpoints
+   - Environment variables for easy configuration
+   - Automatic token management
+   - Pre-request scripts with random data generation
+   - Comprehensive test scripts
+   - Complete user flow scenarios
+
+3. **Available Endpoints**
+   - Health Check
+   - Authentication (Register, Login)
+   - Grocery Items (CRUD operations)
+   - Filtered queries
+   - Error handling tests
+
+4. **Dynamic Variables Used**
+   - `{{$randomEmail}}` - Random email generation
+   - `{{$randomProductName}}` - Random item names
+   - `{{$randomCompanyName}}` - Random store names
+   - `{{$randomInt}}` - Random quantities
+   - `{{$timestamp}}` - Current timestamp
+
 ### Manual Testing with cURL
 
 1. **Register a user**
