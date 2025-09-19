@@ -1,36 +1,375 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Grocery List API
 
-## Getting Started
+A RESTful API for managing grocery lists built with Next.js, PostgreSQL, and Docker. Features JWT authentication, user isolation, and comprehensive data analysis.
 
-First, run the development server:
+## Features
+
+- **JWT Authentication** with bcrypt password hashing
+- **Complete CRUD Operations** for grocery items
+- **User Isolation** - users can only access their own items
+- **Input Validation** using Zod schemas
+- **Docker Containerization** for easy deployment
+- **Python Analytics** with interactive visualizations
+- **Clean Architecture** following SOLID principles
+
+## Quick Start
+
+### Prerequisites
+- Node.js 20+ or Docker
+- pnpm (or npm/yarn)
+- PostgreSQL (or use Docker)
+
+### Option 1: Docker (Recommended)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Start all services
+docker-compose -f docker/docker-compose.yml up -d
+
+# The API will be available at http://localhost:3000
+# PostgreSQL at localhost:5432
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Option 2: Local Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install dependencies**
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Set up environment variables**
+```bash
+cp .env.example .env.local
+# Edit .env.local with your database credentials
+```
 
-## Learn More
+3. **Initialize database**
+```bash
+# Ensure PostgreSQL is running
+# Run the migration script
+psql -U postgres -d grocery_db < docker/postgres/init.sql
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. **Start development server**
+```bash
+pnpm dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## API Endpoints
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Authentication
 
-## Deploy on Vercel
+#### Register User
+```bash
+POST /api/auth/register
+Content-Type: application/json
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+{
+  "email": "user@example.com",
+  "password": "securepassword123"
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### Login User
+```bash
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "securepassword123"
+}
+
+Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com"
+  }
+}
+```
+
+### Grocery Items
+
+All grocery endpoints require authentication:
+```bash
+Authorization: Bearer <token>
+```
+
+#### Create Item
+```bash
+POST /api/grocery-items
+Content-Type: application/json
+
+{
+  "name": "Milk",
+  "quantity": 2,
+  "store": "Walmart",
+  "category": "Dairy",
+  "notes": "2% milk"
+}
+```
+
+#### List Items
+```bash
+GET /api/grocery-items
+# Optional query parameters:
+# ?category=Dairy
+# ?store=Walmart
+# ?is_purchased=false
+```
+
+#### Get Single Item
+```bash
+GET /api/grocery-items/:id
+```
+
+#### Update Item
+```bash
+PUT /api/grocery-items/:id
+Content-Type: application/json
+
+{
+  "name": "Whole Milk",
+  "quantity": 3,
+  "is_purchased": true
+}
+```
+
+#### Delete Item
+```bash
+DELETE /api/grocery-items/:id
+```
+
+## Database Schema
+
+### Users Table
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Grocery Items Table
+```sql
+CREATE TABLE grocery_items (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  quantity INTEGER DEFAULT 1,
+  store VARCHAR(255),
+  category VARCHAR(100),
+  notes TEXT,
+  is_purchased BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## Python Data Analysis
+
+A Python script is included for analyzing grocery shopping patterns.
+
+### Running the Analysis
+
+#### With Docker
+```bash
+docker-compose -f docker/docker-compose.yml --profile analysis up analysis
+```
+
+#### Standalone
+```bash
+cd analysis
+pip install -r requirements.txt
+python grocery_analysis.py --dashboard
+```
+
+### Analysis Features
+- Top 5 most frequently purchased items
+- Store distribution analysis
+- User shopping patterns
+- Interactive Plotly visualizations
+- Comprehensive dashboard view
+
+### Command Line Options
+```bash
+python grocery_analysis.py [options]
+
+Options:
+  -o, --output FILE     Output HTML file (default: grocery_analysis.html)
+  -d, --dashboard       Create comprehensive dashboard
+  --db-url URL         Database connection URL
+```
+
+## Project Structure
+
+```
+grocery-app/
+├── src/
+│   ├── app/
+│   │   └── api/
+│   │       ├── auth/
+│   │       │   ├── register/route.ts
+│   │       │   └── login/route.ts
+│   │       ├── grocery-items/
+│   │       │   ├── route.ts
+│   │       │   └── [id]/route.ts
+│   │       └── health/route.ts
+│   └── lib/
+│       ├── auth/           # JWT and bcrypt utilities
+│       ├── database/       # PostgreSQL connection
+│       ├── repositories/   # Data access layer
+│       ├── services/       # Business logic
+│       ├── types/         # TypeScript definitions
+│       └── utils/         # Validation and errors
+├── docker/
+│   ├── Dockerfile         # App container
+│   ├── docker-compose.yml # Full stack setup
+│   └── postgres/
+│       └── init.sql       # Database initialization
+├── analysis/
+│   ├── grocery_analysis.py
+│   ├── requirements.txt
+│   └── Dockerfile
+└── package.json
+```
+
+## Environment Variables
+
+Create a `.env.local` file with:
+
+```bash
+# Database
+DATABASE_URL=postgresql://postgres:postgres123@localhost:5432/grocery_db
+DB_MAX_CONNECTIONS=20
+
+# JWT Authentication
+JWT_SECRET=your-secret-key-change-in-production
+JWT_EXPIRES_IN=24h
+REFRESH_TOKEN_EXPIRES_IN=7d
+
+# Security
+BCRYPT_ROUNDS=12
+
+# Node Environment
+NODE_ENV=development
+```
+
+## Development Commands
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Start production server
+pnpm start
+
+# Docker commands
+pnpm docker:up      # Start containers
+pnpm docker:down    # Stop containers
+pnpm docker:logs    # View logs
+pnpm docker:build   # Build images
+```
+
+## Testing
+
+### Manual Testing with cURL
+
+1. **Register a user**
+```bash
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!"}'
+```
+
+2. **Login**
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Test123!"}'
+```
+
+3. **Create item** (use token from login)
+```bash
+curl -X POST http://localhost:3000/api/grocery-items \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"name":"Apples","quantity":5,"store":"Whole Foods","category":"Produce"}'
+```
+
+4. **List items**
+```bash
+curl http://localhost:3000/api/grocery-items \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+## Security Features
+
+- **Password Security**: bcrypt with configurable rounds
+- **JWT Tokens**: Signed tokens with expiration
+- **SQL Injection Protection**: Parameterized queries
+- **Input Validation**: Zod schema validation
+- **User Isolation**: Row-level security
+- **Security Headers**: XSS and clickjacking protection
+
+## Architecture Principles
+
+- **SOLID Principles**: Single responsibility, dependency inversion
+- **Clean Architecture**: Separation of concerns with layers
+- **Repository Pattern**: Database abstraction
+- **Service Layer**: Business logic encapsulation
+- **Type Safety**: Full TypeScript coverage
+
+## Production Deployment
+
+### Checklist
+- [ ] Change JWT_SECRET to secure random value
+- [ ] Update database credentials
+- [ ] Set NODE_ENV=production
+- [ ] Configure SSL certificates
+- [ ] Set up monitoring/logging
+- [ ] Configure backup strategy
+- [ ] Review security headers
+
+### Docker Production Build
+```bash
+docker build -f docker/Dockerfile -t grocery-api .
+docker run -p 3000:3000 --env-file .env.production grocery-api
+```
+
+## Troubleshooting
+
+### Database Connection Issues
+```bash
+# Check PostgreSQL is running
+docker-compose -f docker/docker-compose.yml ps
+
+# View database logs
+docker-compose -f docker/docker-compose.yml logs postgres
+```
+
+### Build Issues
+```bash
+# Clear dependencies and rebuild
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
+
+# Clear Docker cache
+docker-compose -f docker/docker-compose.yml down -v
+docker-compose -f docker/docker-compose.yml build --no-cache
+```
+
+## License
+
+MIT

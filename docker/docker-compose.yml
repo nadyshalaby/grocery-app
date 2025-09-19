@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: grocery_app
+      POSTGRES_USER: grocery_user
+      POSTGRES_PASSWORD: grocery_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - grocery-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U grocery_user -d grocery_app"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Next.js Application
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://grocery_user:grocery_password@postgres:5432/grocery_app
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 24h
+      REFRESH_TOKEN_EXPIRES_IN: 7d
+      BCRYPT_ROUNDS: 12
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - grocery-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for session management (optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - grocery-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Python Analysis Container
+  analysis:
+    build:
+      context: ../analysis
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://grocery_user:grocery_password@postgres:5432/grocery_app
+    volumes:
+      - ../analysis/output:/app/output
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - grocery-network
+    profiles:
+      - analysis
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  grocery-network:
+    driver: bridge
