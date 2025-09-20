@@ -40,7 +40,7 @@ export default function Home() {
           <p>
             For complete API documentation, see the{" "}
             <a
-              href="https://github.com/yourusername/grocery-app#readme"
+              href="https://github.com/nadyshalaby/grocery-app#readme"
               className="text-blue-600 hover:underline"
               target="_blank"
               rel="noopener noreferrer"
