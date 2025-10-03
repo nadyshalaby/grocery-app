@@ -12,10 +12,10 @@ import {
   AuthTokens
 } from '../types/auth.types';
 import {
-  ValidationError,
   AuthenticationError,
   ConflictError
 } from '../utils/errors';
+import { createUserSchema, loginSchema, validateRequestBody } from '../utils/validation';
 
 export interface AuthService {
   register(userData: CreateUserRequest): Promise<{ user: User; tokens: AuthTokens }>;
@@ -30,11 +30,9 @@ export class AuthServiceImpl implements AuthService {
    * Register a new user
    */
   async register(userData: CreateUserRequest): Promise<{ user: User; tokens: AuthTokens }> {
-    const { email, password } = userData;
-
-    // Validate input
-    this.validateEmail(email);
-    this.validatePassword(password);
+    // Validate input with Zod schema
+    const validatedData = validateRequestBody(createUserSchema, userData);
+    const { email, password } = validatedData;
 
     // Check if user already exists
     const existingUser = await this.userRepo.findByEmail(email);
@@ -56,13 +54,9 @@ export class AuthServiceImpl implements AuthService {
    * Login user
    */
   async login(loginData: LoginRequest): Promise<{ user: User; tokens: AuthTokens }> {
-    const { email, password } = loginData;
-
-    // Validate input
-    this.validateEmail(email);
-    if (!password) {
-      throw new ValidationError('Password is required');
-    }
+    // Validate input with Zod schema
+    const validatedData = validateRequestBody(loginSchema, loginData);
+    const { email, password } = validatedData;
 
     // Find user with password
     const userWithPassword = await this.userRepo.findByIdWithPassword(
@@ -97,36 +91,6 @@ export class AuthServiceImpl implements AuthService {
       throw new AuthenticationError('User not found');
     }
     return user;
-  }
-
-  /**
-   * Validate email format
-   */
-  private validateEmail(email: string): void {
-    if (!email) {
-      throw new ValidationError('Email is required');
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new ValidationError('Invalid email format');
-    }
-  }
-
-  /**
-   * Validate password strength
-   */
-  private validatePassword(password: string): void {
-    if (!password) {
-      throw new ValidationError('Password is required');
-    }
-
-    if (password.length < 8) {
-      throw new ValidationError('Password must be at least 8 characters long');
-    }
-
-    // Add more password validation rules as needed
-    // Example: require uppercase, lowercase, numbers, special characters
   }
 }
 
